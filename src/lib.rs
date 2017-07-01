@@ -8,17 +8,17 @@ pub struct ThreadPool {
     sender: mpsc::Sender<Message>,
 }
 
-trait FnBox {
-    fn call_box(self: Box<Self>);
+trait JobExecutor {
+    fn execute(self: Box<Self>);
 }
 
-impl<F: FnOnce()> FnBox for F {
-    fn call_box(self: Box<F>) {
+impl<F: FnOnce()> JobExecutor for F {
+    fn execute(self: Box<F>) {
         (*self)()
     }
 }
 
-type Job = Box<FnBox + Send + 'static>;
+type Job = Box<JobExecutor + Send + 'static>;
 
 enum Message {
     NewJob(Job),
@@ -80,7 +80,7 @@ impl Worker {
                     Message::NewJob(job) => {
                         println!("Worker {} got a job; executing.", id);
 
-                        job.call_box();
+                        job.execute();
                     },
                     Message::Terminate => {
                         println!("Worker {} was told to terminate.", id);
