@@ -1,10 +1,11 @@
+extern crate httpserver;
+
+use httpserver::ThreadPool;
+
 use std::io::prelude::*;
 use std::net::TcpListener;
 use std::net::TcpStream;
 use std::fs::File;
-extern crate httpserver;
-use httpserver::ThreadPool;
-
 use std::thread;
 use std::time::Duration;
 
