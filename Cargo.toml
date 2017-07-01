@@ -1,0 +1,6 @@
+[package]
+name = "httpserver"
+version = "0.1.0"
+authors = ["Jerome Terry <jerome.terry@verafin.com>"]
+
+[dependencies]
