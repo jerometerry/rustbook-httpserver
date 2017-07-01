@@ -8,23 +8,6 @@ pub struct ThreadPool {
     sender: mpsc::Sender<Message>,
 }
 
-trait JobExecutor {
-    fn execute(self: Box<Self>);
-}
-
-impl<F: FnOnce()> JobExecutor for F {
-    fn execute(self: Box<F>) {
-        (*self)()
-    }
-}
-
-type Job = Box<JobExecutor + Send + 'static>;
-
-enum Message {
-    NewJob(Job),
-    Terminate,
-}
-
 impl ThreadPool {
 
     /// Create a new ThreadPool.
@@ -63,6 +46,26 @@ impl ThreadPool {
     }
 }
 
+impl Drop for ThreadPool {
+    fn drop(&mut self) {
+        println!("Sending terminate message to all workers.");
+
+        for _ in &mut self.workers {
+            self.sender.send(Message::Terminate).unwrap();
+        }
+
+        println!("Shutting down all workers.");
+
+        for worker in &mut self.workers {
+            println!("Shutting down worker {}", worker.id);
+
+            if let Some(thread) = worker.thread.take() {
+                thread.join().unwrap();
+            }
+        }
+    }
+}
+
 struct Worker {
     id: usize,
     thread: Option<thread::JoinHandle<()>>,
@@ -98,22 +101,19 @@ impl Worker {
     }
 }
 
-impl Drop for ThreadPool {
-    fn drop(&mut self) {
-        println!("Sending terminate message to all workers.");
+trait JobExecutor {
+    fn execute(self: Box<Self>);
+}
 
-        for _ in &mut self.workers {
-            self.sender.send(Message::Terminate).unwrap();
-        }
-
-        println!("Shutting down all workers.");
-
-        for worker in &mut self.workers {
-            println!("Shutting down worker {}", worker.id);
-
-            if let Some(thread) = worker.thread.take() {
-                thread.join().unwrap();
-            }
-        }
+impl<F: FnOnce()> JobExecutor for F {
+    fn execute(self: Box<F>) {
+        (*self)()
     }
+}
+
+type Job = Box<JobExecutor + Send + 'static>;
+
+enum Message {
+    NewJob(Job),
+    Terminate,
 }
