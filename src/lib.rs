@@ -8,22 +8,26 @@ use std::sync::mpsc;
 use std::sync::Arc;
 use std::sync::Mutex;
 
-pub struct WebServer {
+pub struct Options {
     addr: String,
     max_workers: usize,
 }
 
-impl WebServer {
-    pub fn new(addr: String, max_workers: usize) -> WebServer {
-        WebServer {
+impl Options {
+    pub fn new(addr: String, max_workers: usize) -> Options {
+        Options {
             addr,
             max_workers
         }
     }
+}
 
-    pub fn run(&self) {
-        let listener = TcpListener::bind(&self.addr).unwrap();
-        let pool = ThreadPool::new(self.max_workers);
+pub struct WebServer;
+
+impl WebServer {
+    pub fn run(options: Options) {
+        let listener = TcpListener::bind(&options.addr).unwrap();
+        let pool = ThreadPool::new(options.max_workers);
 
         for stream in listener.incoming() {
             let stream = stream.unwrap();
