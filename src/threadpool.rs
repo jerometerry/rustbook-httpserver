@@ -28,10 +28,10 @@ impl ThreadPool {
 
     pub fn execute<F>(&self, f: F)
         where F: FnOnce() + Send + 'static {
-        self.run_job(f);
+        self.dispatch_job(f);
     }
 
-    fn run_job<F>(&self, f: F)
+    fn dispatch_job<F>(&self, f: F)
         where F: FnOnce() + Send + 'static {
         let msg = Message::RunJob(Box::new(f));
         self.work_dispatcher.send(msg).unwrap();
