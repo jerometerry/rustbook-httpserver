@@ -3,6 +3,8 @@ use std::sync::mpsc;
 use std::sync::Arc;
 use std::sync::Mutex;
 
+use message::Message;
+
 pub struct Worker {
     pub id: usize,
     pub thread: Option<thread::JoinHandle<()>>,
@@ -36,19 +38,3 @@ impl Worker {
     }
 }
 
-pub trait Executor {
-    fn execute(self: Box<Self>);
-}
-
-impl<F: FnOnce()> Executor for F {
-    fn execute(self: Box<F>) {
-        (*self)()
-    }
-}
-
-pub type Job = Box<Executor + Send + 'static>;
-
-pub enum Message {
-    NewJob(Job),
-    Terminate,
-}
