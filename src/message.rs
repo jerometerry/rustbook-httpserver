@@ -1,6 +1,6 @@
 use job::Job;
 
 pub enum Message {
-    NewJob(Job),
+    RunJob(Job),
     Terminate,
 }

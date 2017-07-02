@@ -7,7 +7,7 @@ use message::Message;
 
 pub struct ThreadPool {
     workers: Vec<Worker>,
-    sender: mpsc::Sender<Message>,
+    work_dispatcher: mpsc::Sender<Message>,
 }
 
 impl ThreadPool {
@@ -22,14 +22,19 @@ impl ThreadPool {
 
         ThreadPool {
             workers,
-            sender,
+            work_dispatcher: sender,
         }
     }
 
     pub fn execute<F>(&self, f: F)
         where F: FnOnce() + Send + 'static {
-        let job = Box::new(f);
-        self.sender.send(Message::NewJob(job)).unwrap();
+        self.run_job(f);
+    }
+
+    fn run_job<F>(&self, f: F)
+        where F: FnOnce() + Send + 'static {
+        let msg = Message::RunJob(Box::new(f));
+        self.work_dispatcher.send(msg).unwrap();
     }
 }
 
@@ -38,7 +43,7 @@ impl Drop for ThreadPool {
         println!("Sending terminate message to all workers.");
 
         for _ in &mut self.workers {
-            self.sender.send(Message::Terminate).unwrap();
+            self.work_dispatcher.send(Message::Terminate).unwrap();
         }
 
         println!("Shutting down all workers.");

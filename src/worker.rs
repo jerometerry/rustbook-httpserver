@@ -19,9 +19,9 @@ impl Worker {
                 let message = receiver.lock().unwrap().recv().unwrap();
 
                 match message {
-                    Message::NewJob(job) => {
+                    Message::RunJob(job) => {
                         println!("Worker {} got a job; executing.", id);
-                        job.execute();
+                        job.run();
                     },
                     Message::Terminate => {
                         println!("Worker {} was told to terminate.", id);
