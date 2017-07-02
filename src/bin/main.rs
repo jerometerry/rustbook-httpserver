@@ -5,5 +5,6 @@ use httpserver::webserver::WebServer;
 
 fn main() {
     let options = Options::new(String::from("127.0.0.1:8080"), 4);
-    WebServer::run(options);
+    let server = WebServer::new(options);
+    server.start();
 }
